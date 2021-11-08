@@ -1,4 +1,5 @@
 #include <iostream.h>
+#include "<unistd.h>"
 #include "socketobj.h"
 
 #define LISTENING_PORT	34567
@@ -18,8 +19,5 @@ class Server
 
 	private:
 		static Server server_ = 0;
-
-		Server() {}
-		~Server() {}
 		SocketObj listening_socket;
 }
