@@ -4,13 +4,14 @@
 
 Server::Server()
 {
-	this->listening_socket = new SocketObj();
+	this->listening_socket = new ListeningSocket;
 	this->set_port_no(LISTENING_PORT);
 }
 
 Server::~Server()
 {
-	delete this->listening_socket;
+	if (this->listening_socket)
+		delete this->listening_socket;
 }
 
 void Server::run()
@@ -19,11 +20,19 @@ void Server::run()
 
 	while (1)	
 	{
-		int client_socket = this->listening_socket->wait_for_client_request();
+		Client& client = this->listening_socket->wait_for_client_request();
+
+		const int client_socket = client.get_socket();
+		const struct sockaddr_in& client_sin = client.get_sin();
+
 		if (STDERR_FILENO >= client_socket)
 			continue;
 
+	/*
+	 * Fork a new process to handle the client's request
+	 */
 		pid_t pid = fork();
+
 		if (0 > pid)
 		{
 			throw std::exception("Failed to fork new process");
@@ -92,7 +101,11 @@ void Server::run()
 		}
 		else
 		{
-			// parent process executes this block
+			/*
+				Parent process simply continues
+				with another iteration of the loop,
+				waiting for the next client request.
+			 */
 			continue;
 		}
 	}
