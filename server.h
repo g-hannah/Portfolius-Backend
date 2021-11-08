@@ -19,5 +19,5 @@ class Server
 
 	private:
 		static Server server_ = 0;
-		SocketObj listening_socket;
+		ListeningSocket *listening_socket = 0; // owned pointer
 }
