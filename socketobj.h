@@ -1,3 +1,6 @@
+#ifndef __SOCKETOBJ_h__
+#define __SOCKETOBJ_h__ 1
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -36,3 +39,5 @@ class SocketObj
 		int sock;
 		in_port_t port;
 }
+
+#endif
