@@ -1,6 +1,8 @@
 #include <iostream.h>
 #include "socketobj.h"
 
+#define LISTENING_PORT	34567
+
 class Server
 {
 	public:
@@ -19,5 +21,5 @@ class Server
 
 		Server() {}
 		~Server() {}
-		SocketObj sock;
+		SocketObj listening_socket;
 }
