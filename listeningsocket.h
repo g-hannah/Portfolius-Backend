@@ -14,6 +14,7 @@ class ListeningSocket : SocketObj
 		ListeningSocket();
 		virtual ~ListeningSocket();
 
+		void listen();
 		ListeningSocket& wait_for_client_request();
 		void send(std::string);
 

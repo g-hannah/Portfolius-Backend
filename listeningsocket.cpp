@@ -22,6 +22,26 @@ ListeningSocket::~ListeningSocket()
 		free(this->client_sin);
 }
 
+void ListeningSocket::listen()
+{
+	if ((this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) < 0)
+		throw std::exception("Failed to create socket");
+
+	struct sockaddr_in sin;
+
+	clear_struct(&sin);
+
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_port = htons(port);
+
+	if (bind(this->sock, std::static_cast<struct sockaddr *>(&sin), sizeof(sin)))
+		throw std::exception("Failed to bind socket");
+
+	if (listen(this->sock, this->value_backlog) < 0)
+		throw std::exception("Failed to listen on socket");
+}
+
 Client& ListeningSocket::wait_for_client_request()
 {
 	Client client;
