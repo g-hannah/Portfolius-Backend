@@ -21,74 +21,39 @@ SocketObj::SocketObj()
 */
 }
 
+SocketObj::SocketObj(SocketObj *obj)
+{
+	this->sock = obj->sock;
+	
+}
+
 SocketObj::~SocketObj()
 {
 }
 
-void SocketObj::set_port_no(const uint16_t port)
+void SocketObj::set_port(const uint16_t port)
 {
 	this->port = port;
 }
 
-bool SocketObj::connect()
+uint16_t SocketObj::get_port()
 {
-	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-
-	if (0 > this->sock)
-		return false;
-
-	struct sockaddr_in *sin = _get_remote_host_ip(this->remote_host_FQDN);
-
-	clear_struct(&sin);
-
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(this->port);
+	return this->port;
 }
 
-uint16_t SocketObj::get_port_no()
+void SocketObj::set_socket(const int sock)
 {
-	return this->port_no;
+	this->sock = sock;
 }
 
-void SocketObj::listen()
+int SocketObj::get_socket()
 {
-	if ((this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) < 0)
-		throw std::exception("Failed to create socket");
-
-	struct sockaddr_in sin;
-
-	clear_struct(&sin);
-
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = INADDR_ANY;
-	sin.sin_port = htons(port);
-
-	if (bind(this->sock, std::static_cast<struct sockaddr *>(&sin), sizeof(sin)))
-		throw std::exception("Failed to bind socket");
-
-	if (listen(this->sock, this->value_backlog) < 0)
-		throw std::exception("Failed to listen on socket");
-}
-
-struct sockaddr *SocketObj::wait_for_client_request()
-{
-	int client_socket = -1;
-	struct sockaddr_in *sin = NULL;
-	socklen_t socklen = 0;
-
-	sin = malloc(sizeof(struct sockaddr_in));
-	assert(NULL != sin);
-
-	client_socket = accept(this->sock, std::static_cast<struct sockaddr *>(sin), &socklen);
-	if (0 > client_socket)
-		throw std::exception("Error accepting client request");
-
-	return sin;
+	return this->sock;
 }
 
 /*
  * Private methods
- */
+ *
 struct sockaddr_in *SocketObj::_get_remote_host_ip(std::string host_addr)
 {
 	struct addrinfo *ainf = nullptr;
@@ -120,3 +85,4 @@ fail:
 	freeaddrinfo(ainf);
 	return nullptr;
 }
+*/

@@ -20,25 +20,19 @@ class SocketObj
 {
 	public:
 		SocketObj();
+		SocketObj(SocketObj *obj);
 		virtual ~SocketObj();
-		void set_port_no(uint16_t);
-		uint16_t get_port_no();
-		bool connect();
-		void listen();
+
+		void set_port(uint16_t);
+		uint16_t get_port();
+		int get_socket();
+		void set_socket(int);
 
 	private:
 
 /*
- * Methods
- */
-		inaddr_t _get_remote_host_ip();
-
-/*
  * Vars
  */
-		std::string remote_host_FQDN;
-		in_addr_t remote_in_addr_;
-		struct sockaddr *sa_;
-		int socket_;
-		int port_no;
+		int sock;
+		in_port_t port;
 }
