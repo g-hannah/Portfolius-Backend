@@ -1,3 +1,6 @@
+#ifndef __SERVER_h__
+#define __SERVER_h__ 1
+
 #include <iostream.h>
 #include "<unistd.h>"
 #include "socketobj.h"
@@ -26,3 +29,5 @@ class Server
 		static Server server_ = 0;
 		ListeningSocket *listening_socket = 0; // owned pointer
 }
+
+#endif
