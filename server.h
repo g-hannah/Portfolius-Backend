@@ -4,6 +4,11 @@
 
 #define LISTENING_PORT	34567
 
+/**
+ * A singleton class for running the server
+ *
+ * @author Gary Hannah
+ */
 class Server
 {
 	public:
