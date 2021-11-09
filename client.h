@@ -15,6 +15,7 @@ class Client
 	public:
 
 		Client();
+		Client(Client&);
 		virtual ~Client();
 
 		void set_socket(int);
