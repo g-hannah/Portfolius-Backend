@@ -1,4 +1,5 @@
 #include "server.h"
+#include "rapidjson/document.h"
 
 #define BUFFER_SIZE 2048
 
@@ -66,38 +67,41 @@ void Server::run()
 			 */
 			read(client_socket, buffer, BUFFER_SIZE);
 
-			/*
-				TODO
+		/*
+		 * Parses the JSON data into a DOM
+		 */
+			rapidjson::Document d;
+			d.Parse(buffer);
 
-				Use external json lib to parse request,
-				obtain the required data from the
-				exchange rates manager and send a JSON
-				encoded response to the client.
+			rapidjson::Value& type = d["type"];
+			std::string value_type = type.GetString();
 
+			rapidjson::Value& currency = d["currency"];
+			std::string value_currency = currency.GetString();
 
-				e.g.,
+			ApplicationSettings *settings = ApplicationSettings::instance();
 
-				JsonObj jsonobj = Json::read_data(buffer);
-				std::string type = jsonobj->get_node("type");
-				if (IS_SINGLE_RATE_REQUEST(type))
-					// get the rate
-				else
-					// get array of rates
+			if (!settings->is_valid_currency(value_currency))
+			{
+				this->send_response(client, "invalid currency", REQUEST_ERROR);
+				goto child_exit;
+			}
+			else
+			if (!settings->is_valid_request_type(value_type))
+			{
+				this->send_response(client, "invalid request type", REQUEST_ERROR);
+				goto child_exit;
+			}
 
-				JsonObj outjson = new JsonObj;
-				outjson.put("type", type);
-				outjson.put("data", Json::encode_data(the_data));
-				std::string stringified = outjson.get_string();
+			ExchangeRatesManager *manager = ExchangeRatesManager::instance();
 
-				size_t sent_len = send(client_socket, stringified, stringified.length());
-				if (stringified.length() != sent_len)
-					throw std::exception("Failed to send response to client");
+			double rate = manager->get_rate_for_currency(currency);
 
-				exit(EXIT_SUCCESS);
-			 */
+			// write json data and send it
+			
 
-			// child process has to exit
-			exit(EXIT_SUCCESS);
+		child_exit:
+			exit(0); // we won't be checking child process's return value, so just return 0 no matter what
 		}
 		else
 		{
