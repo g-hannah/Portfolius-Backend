@@ -1,6 +1,9 @@
 #ifndef _ExchangeRatesManager_h_
 #define _ExchangeRatesManager_h_ 1
 
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include "httplib/httplib.h"
+#include "rapidjson/document.h"
 #include <pthread.h>
 
 #define API_ENDPOINT ""
@@ -32,6 +35,8 @@ class ExchangeRatesManager
 		static bool _initialised = false;
 		ExchangeRatesManager();
 		virtual ~ExchangeRatesManager();
+		void write_rates(rapidjson::Document);
+		std::string read_rates(std::string);
 
 		SocketObj *_sock = 0;
 
