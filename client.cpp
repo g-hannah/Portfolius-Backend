@@ -5,6 +5,12 @@ Client::Client()
 	this->sock = -1;
 }
 
+Client::Client(Client& c)
+{
+	this->sock = c.sock;
+	this->sin = c.sin;
+}
+
 Client::~Client()
 {
 	if (STDERR_FILENO < this->sock)
