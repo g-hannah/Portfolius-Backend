@@ -81,3 +81,8 @@ bool ApplicationSettings::is_valid_currency(std::string currency)
 
 	return false;
 }
+
+char **ApplicationSettings::get_currencies()
+{
+	return this->currencies;
+}

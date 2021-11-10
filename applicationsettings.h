@@ -25,6 +25,7 @@ class ApplicationSettings
 		ApplicationSettings();
 		virtual ~ApplicationSettings();
 		bool is_valid_currency(std::string);
+		char **get_currencies();
 
 	private:
 		static ApplicationSettings *_instance;
