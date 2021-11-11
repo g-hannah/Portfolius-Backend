@@ -1,12 +1,9 @@
 #include "ExchangeRatesManager.h"
 
-#define API_ENDPOINT		"https://min-api.cryptocompare.com"
-#define API_CRYPTO_ARG		"fsym"
-#define API_CURRENCY_ARG	"tsyms"
-
-#define PATH_TO_RATES		"./data"
-
-#define SLEEP_TIME	360000L // 6 minutes
+static inline _now()
+{
+	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+}
 
 ExchangeRatesManager::ExchangeRatesManager()
 {
@@ -53,12 +50,12 @@ void ExchangeRatesManager::start()
 	{
 		if (!this->_map_secondary.empty())
 		{
-			std::map<std::string,std::vector<Rate>>::iterator iter = this->_map_secondary.begin();
+			std::map<std::string,std::vector<Rate*>>::iterator iter = this->_map_secondary.begin();
 
 			while (iter != this->_map_secondary.end())
 			{
 				std::string key = iter->first;
-				std::vector<Rate> vec = iter->second;
+				std::vector<Rate*> vec = iter->second;
 
 				/*
 				 * Let the API think we are a web browser
@@ -84,7 +81,8 @@ void ExchangeRatesManager::start()
 				rapidjson::Value& v2 = d2["GBP"];
 
 				double fresh_rate = v2.GetDouble();
-				std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				//std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				std::time_t now = _now();
 
 				vec.push_back(new Rate(now, fresh_rate));
 			}
