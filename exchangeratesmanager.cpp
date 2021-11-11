@@ -113,7 +113,7 @@ std::map<std::string,std::vector<Rate*>> ExchangeRatesManager::_read_rates()
 	if (!currencies)
 		return nullptr;
 
-	std::map<std::string,std::vector<Rate>> map;
+	std::map<std::string,std::vector<Rate*>> map;
 
 	for (int i = 0; currencies[i]; ++i)
 	{
@@ -128,7 +128,7 @@ std::map<std::string,std::vector<Rate*>> ExchangeRatesManager::_read_rates()
 
 		assert(v.IsArray());
 
-		std::vector<Rate> vec;
+		std::vector<Rate*> vec;
 
 		for (rapidjson::SizeType k, n = v.Size(); k < n; ++k)
 		{
