@@ -36,3 +36,16 @@ void struct sockaddr_in& Client::get_sin()
 {
 	return this->sin;
 }
+
+std::size_t send(std::string data)
+{
+	std::size_t to_send = data.length();
+	std::size_t num = 0;
+	char *p = data.c_str();
+
+	while (to_send > 0 && (num = send(this->sock, p, to_send)) > 0)
+	{
+		to_send -= num;
+		p += num;
+	}
+}
