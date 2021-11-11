@@ -51,8 +51,8 @@ namespace portfolius
 			virtual ~ExchangeRatesManager();
 
 			bool _running = false;
-			void _write_rates(rapidjson::Document);
-			std::map<std::string,std::vector<Rate*>> _read_rates(std::string);
+			void _write_rates();
+			std::map<std::string,std::vector<Rate*>> _read_rates();
 
 		/*
 		 * When we are iterating through the map's keys in order
