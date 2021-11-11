@@ -1,6 +1,6 @@
 #include "ExchangeRatesManager.h"
 
-static inline _now()
+static inline std::time_t _now()
 {
 	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
