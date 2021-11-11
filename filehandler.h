@@ -4,19 +4,19 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-class FileHandler
+namespace portfolius
 {
-	public:
+	class FileHandler
+	{
+		public:
+			FileHandler(std::string);
+			virtual ~FileHandler();
+			std::string read_all();
 
-		FileHandler(std::string);
-		virtual ~FileHandler();
-		std::string read_all();
-
-	private:
-
-		std::string path;
-		int fd;
-		size_t size;
+		private:
+			std::string path;
+			int fd;
+			size_t size;
+	};
 }
-
 #endif

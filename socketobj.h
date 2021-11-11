@@ -19,25 +19,24 @@
  *
  * @author Gary Hannah
  */
-class SocketObj
+namespace portfolius
 {
-	public:
-		SocketObj();
-		SocketObj(SocketObj *obj);
-		virtual ~SocketObj();
+	class SocketObj
+	{
+		public:
+			SocketObj();
+			SocketObj(SocketObj *obj);
+			virtual ~SocketObj();
 
-		void set_port(uint16_t);
-		uint16_t get_port();
-		int get_socket();
-		void set_socket(int);
+			void set_port(uint16_t);
+			uint16_t get_port();
+			int get_socket();
+			void set_socket(int);
 
-	private:
-
-/*
- * Vars
- */
-		int sock;
-		in_port_t port;
+		private:
+			int sock;
+			in_port_t port;
+	};
 }
 
 #endif

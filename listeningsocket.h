@@ -7,20 +7,20 @@
  *
  * @author Gary Hannah
  */
-class ListeningSocket : SocketObj
+namespace portfolius
 {
-	public:
+	class ListeningSocket : SocketObj
+	{
+		public:
+			ListeningSocket();
+			virtual ~ListeningSocket();
 
-		ListeningSocket();
-		virtual ~ListeningSocket();
+			void listen();
+			Client& wait_for_client_request();
+			void send(std::string);
 
-		void listen();
-		Client& wait_for_client_request();
-		void send(std::string);
-
-	private:
-		
-		struct sockaddr_in *client_sin = 0;
+		private:
+			struct sockaddr_in *client_sin = 0;
+	};
 }
-
 #endif
