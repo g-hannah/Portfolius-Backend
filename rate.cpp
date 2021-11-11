@@ -1,6 +1,6 @@
 #include "rate.h"
 
-long Rate::get_timestamp()
+std::time_t Rate::get_timestamp()
 {
 	return this->timestamp;
 }

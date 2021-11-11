@@ -1,6 +1,8 @@
 #ifndef __RATE_h__
 #define __RATE_h__ 1
 
+#include <ctime>
+
 /**
  * A class for handling rates data
  *
@@ -11,14 +13,14 @@ namespace portfolius
 	class Rate
 	{
 		public:
-			Rate(long t, double v) : timestamp(t), value(v) {}
+			Rate(std::time_t t, double v) : timestamp(t), value(v) {}
 			virtual ~Rate() {}
 
-			long get_timestamp();
+			std::time_t get_timestamp();
 			double get_value();
 
 		private:
-			long timestamp;
+			std::time_t timestamp;
 			double value;
 	};
 }
