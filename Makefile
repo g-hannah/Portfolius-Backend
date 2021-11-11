@@ -1,6 +1,7 @@
 CC := g++
 
 SOURCE_FILES := \
+	main.cpp \
 	server.cpp \
 	exchangeratesmanager.cpp \
 	socketobj.cpp \
@@ -8,6 +9,7 @@ SOURCE_FILES := \
 	client.cpp
 
 OBJECT_FILES := \
+	main.o \
 	server.o \
 	exchangeratesmanager.o \
 	socketobj.o \
