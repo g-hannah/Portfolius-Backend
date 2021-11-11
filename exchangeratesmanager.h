@@ -2,9 +2,10 @@
 #define _ExchangeRatesManager_h_ 1
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
+
 #include "httplib/httplib.h"
 #include "rapidjson/document.h"
-#include <pthread.h>
+#include <mutex>
 
 #define API_ENDPOINT ""
 
@@ -42,8 +43,8 @@ class ExchangeRatesManager
 
 		SocketObj *_sock = 0;
 
-
-		pthread_mutex_t init_mutex;
+		std::map<std::string,std::vector<Rate>> map_rates;
+		std::mutex rates_mutex;
 }
 
 
