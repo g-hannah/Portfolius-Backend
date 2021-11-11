@@ -11,26 +11,29 @@
  *
  * @author Gary Hannah
  */
-class ApplicationSettings
+namespace portfolius
 {
-	public:
-		static ApplicationSettings *instance()
-		{
-			if (!_instance)
-				_instance = new ApplicationSettings;
+	class ApplicationSettings
+	{
+		public:
+			static ApplicationSettings *instance()
+			{
+				if (!_instance)
+					_instance = new ApplicationSettings;
 
-			return _instance;
-		}
+				return _instance;
+			}
 
-		ApplicationSettings();
-		virtual ~ApplicationSettings();
-		bool is_valid_currency(std::string);
-		char **get_currencies();
+			ApplicationSettings();
+			virtual ~ApplicationSettings();
+			bool is_valid_currency(std::string);
+			char **get_currencies();
 
-	private:
-		static ApplicationSettings *_instance;
+		private:
+			static ApplicationSettings *_instance;
 
-		void read_config_file();
+			void read_config_file();
 
-		char **currencies = 0;
+			char **currencies = 0;
+	};
 }
