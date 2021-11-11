@@ -6,20 +6,21 @@
  *
  * @author Gary Hannah
  */
-class Rate
+namespace portfolius
 {
-	public:
+	class Rate
+	{
+		public:
+			Rate(long t, double v) : timestamp(t), value(v) {}
+			virtual ~Rate() {}
 
-		Rate(long t, int v) : timestamp(t), value(v) {}
-		virtual ~Rate() {}
+			long get_timestamp();
+			double get_value();
 
-		long get_timestamp();
-		double get_value();
-
-	private:
-
-		long timestamp;
-		double value;
+		private:
+			long timestamp;
+			double value;
+	};
 }
 
 #endif
