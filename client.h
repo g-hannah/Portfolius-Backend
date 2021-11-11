@@ -1,6 +1,8 @@
 #ifndef __CLIENT_h__
 #define __CLIENT_h__ 1
 
+#include <sys/socket.h>
+
 /**
  * A class to represent a client
  * that has sent a request to the
@@ -8,23 +10,25 @@
  *
  * @author Gary Hannah
  */
-class Client
+namespace portfolius
 {
-	friend class ListeningSocket;
+	class Client
+	{
+		friend class ListeningSocket;
 
-	public:
+		public:
+			Client();
+			Client(Client&);
+			virtual ~Client();
 
-		Client();
-		Client(Client&);
-		virtual ~Client();
+			void set_socket(int);
+			void set_sin(struct sockaddr_in&);
+			std::size_t send(std::string);
 
-		void set_socket(int);
-		void set_sin(struct sockaddr_in&);
-
-	private:
-
-		int sock;
-		struct sockaddr_in& sin;
+		private:
+			int sock;
+			struct sockaddr_in& sin;
+	};
 }
 
 #endif
