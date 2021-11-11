@@ -26,6 +26,7 @@ class ExchangeRatesManager
 			return _instance;
 		}
 
+		void start();
 		double getRateForCurrency(std::string);
 		std::list<double> getRatesHistoryForCurrency(std::string);
 
@@ -35,6 +36,7 @@ class ExchangeRatesManager
 		static bool _initialised = false;
 		ExchangeRatesManager();
 		virtual ~ExchangeRatesManager();
+
 		void write_rates(rapidjson::Document);
 		std::string read_rates(std::string);
 
