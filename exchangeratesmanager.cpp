@@ -179,27 +179,20 @@ void ExchangeRatesManager::_write_rates()
 			arr.PushBack(val, allocator):
 		}
 
+		d.AddMember("data", arr, allocator);
+
 		std::string path = PATH_TO_DATA + "/" + key + ".json";
-
-/*
-		rapidjson::StringBuffer buffer;
-		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-		d.Accept(writer);
-
-		std::string json = buffer.GetString();
-*/
-
 		char *buffer = (char *)calloc(FILESTREAMWRITER_BUFSIZE);
 		assert(buffer);
 
 		FILE *fp = fopen(path, "w");
 		rapidjson::FileWriteStream os(fp, buffer, FILESTREAMWRITER_BUFSIZE);
-		rapidjson::Writer<rapidjson::FileWriteStream> out_writer(os);
+		rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
 
 	/*
 	 * This automatically writes the JSON to the file
 	 */
-		d.Accept(out_writer);
+		d.Accept(writer);
 
 		fclose(fp);
 		fp = nullptr;
