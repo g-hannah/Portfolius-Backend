@@ -145,33 +145,59 @@ void ExchangeRatesManager::write_rates(rapidjson::Document d)
 {
 }
 
+/**
+ * This method can be called from another thread, so
+ * a mutex to protect the data structures is necessary
+ */
 double ExchangeRatesManager::getRateForCurrency(std::string currency)
 {
-	/*
-		Acquire mutex for data structure
+	this->rates_mutex.lock();
+/*
+ * Critical section
+ */
 
-		Check for existence of data for given currency
+	std::map<std::string,std::vector<Rate>> rates = this->map_rates;
+	std::vector<Rate> vec = rates.get(currency);
+	if (!vec)
+	{
+		this->rates_mutex.unlock();
+		throw std::exception("No rates for currency \"" + currency + "\"");
+	}
 
-		if no such currency
-			unlock mutex
-			return error
 
-		else
-			retrieve most up-to-date rate for the currency
-			unlock mutex
-			return the rate
-	*/
+	Rate rate = vec[vec.size()-1];
+
+	this->rates_mutex.unlock();
+
+	return rate.get_value();
 }
 
+/**
+ * This method can be called from another thread, so
+ * a mutex to protect the data structures is necessary
+ */
 std::list<double> ExchangeRatesManager::getRatesHistoryForCurrency(std::string)
 {
-	/*
-		Acquire mutex
+	this->rates_mutex.lock();
+/*
+ * Critical section
+ */
 
-		Get list of rates for the currency if it exists
+	std::map<std::string,std::vector<Rate>> rates = this->map_rates;
+	std::vector<Rate> vec = rates.get(currency);
+	if (!vec)
+	{
+		this->rates_mutex.unlock();
+		throw std::exception("No rates for currency \"" + currency + "\"");
+	}
 
-		unlock mutex
+	std::size_t num = std::min(vec.size(), std::static_cast<std::size_t>(24));
+	std::list list;
 
-		return result (list of rates or nullptr)
-	*/
+	for (std::size_t i = num-1; i >= 0; --i)
+		list.push_back(vec[i]);
+
+	this->rates_mutex.unlock();
+
+	return list;
 }
