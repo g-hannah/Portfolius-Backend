@@ -1,3 +1,4 @@
+#include <thread>
 #include "exchangeratesmanager.h"
 #include "server.h"
 
