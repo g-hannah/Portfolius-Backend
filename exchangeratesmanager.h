@@ -45,6 +45,7 @@ class ExchangeRatesManager
 
 		std::map<std::string,std::vector<Rate>> map_rates;
 		std::mutex rates_mutex;
+		std::mutex init_mutex;
 }
 
 

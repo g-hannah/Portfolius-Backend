@@ -20,6 +20,17 @@ ExchangeRatesManager::~ExchangeRatesManager()
 
 void ExchangeRatesManager::start()
 {
+	this->init_mutex.lock();
+
+	if (this->_initialised)
+	{
+		this->init_mutex.unlock();
+		return;
+	}
+
+	this->_initialised = true;
+	this->init_mutex.unlock();
+
 	ApplicationSettings *settings = ApplicationSettings::instance();
 
 	while (true)
@@ -119,20 +130,6 @@ void ExchangeRatesManager::start()
 		 */
 		sleep(SLEEP_TIME);
 	}
-
-
-	pthread_mutex_lock(&this->init_mutex);
-
-	if (true == _initialised)
-	{
-		pthread_mutex_unlock(&this->init_mutex);
-		return;
-	}
-
-	// initialise the manager
-
-	_initialised = true;
-	pthread_mutex_unlock(&this->init_mutex);
 }
 
 std::string ExchangeRatesManager::read_rates(std::string path)
