@@ -20,6 +20,14 @@
 
 #define FILESTREAMWRITER_BUFSIZE	32768
 
+#define API_ENDPOINT		"https://min-api.cryptocompare.com"
+#define API_CRYPTO_ARG		"fsym"
+#define API_CURRENCY_ARG	"tsyms"
+
+#define PATH_TO_RATES		"./data"
+
+#define SLEEP_TIME	360000L // 6 minutes
+
 /**
  * A singleton class to get exchange rates
  * from an API endpoint.
