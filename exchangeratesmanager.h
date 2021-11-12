@@ -10,11 +10,13 @@
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/memorystream.h"
+#include <signal.h>
 #include <vector>
 #include <mutex>
 #include <ctime>
 #include <chrono>
 #include <cstdio>
+#include <cstddef>
 
 #define API_ENDPOINT ""
 
