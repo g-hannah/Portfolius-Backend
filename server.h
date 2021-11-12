@@ -3,6 +3,7 @@
 
 #include <iostream.h>
 #include "<unistd.h>"
+#include <cstddef>
 #include "socketobj.h"
 #include "rapidjson/document.h"
 
@@ -13,6 +14,8 @@
 
 #define REQUEST_TYPE_SINGLE_RATE	"rate"
 #define REQUEST_TYPE_HISTORIC		"historic"
+
+#define CLIENT_REQUEST_BUFSIZE		2048
 
 /**
  * A singleton class for running the server
@@ -26,16 +29,16 @@ namespace portfolius
 		public:
 			static Server *instance()
 			{
-				if (!server_)
-					server_ = new Server
+				if (!_instance)
+					_instance = new Server
 
-				return server_
+				return _instance;
 			}
 
 			void run(std::string);
 
 		private:
-			static Server server_ = 0;
+			static Server _instance = 0;
 			ListeningSocket *listening_socket = 0; // owned pointer
 
 			void client_error(portfolius::Client&, std::string);
