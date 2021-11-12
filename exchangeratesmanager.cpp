@@ -66,8 +66,31 @@ void ExchangeRatesManager::start()
 					{ "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8" }
 				};
 
+
 				httplib::SSLClient client(API_ENDPOINT, headers);
+
+			/*
+			 * According to the httplib documentation, when using an SSL client,
+			 * there is no way to avoid a SIGPIPE signal occurring. So we simply
+			 * have to ignore it here.
+			 *
+			 * SIGPIPE happens with a "write on a pipe with no one to read it", and
+			 * the default action taken on this signal is abnormal termination
+			 * of the process - IEEE POSIX Std 1003.1 p. 334
+			 */
+
+				struct sigaction sa_old = {0};
+				struct sigaction sa_new = {0};
+
+			/*
+			 * SIG_IGN - requests that the signal be ignored - IEEE POSIX Std 1003.1 p. 332
+			 */
+				sa_new.sa_handler = SIG_IGN;
+				sigaction(SIGPIPE, &sa_new, &sa_old);
+
 				auto result = client.Get("/data/price?" + API_CRYPTO_ARG + "=" + key + "&" + API_CURRENCY_ARG + "=GBP");
+
+				sigaction(SIGPIPE, &sa_old, NULL);
 
 				std::string body = result->body;
 
