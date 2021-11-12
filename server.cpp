@@ -1,7 +1,5 @@
 #include "server.h"
 
-#define BUFFER_SIZE 2048
-
 Server::Server()
 {
 	this->listening_socket = new ListeningSocket;
@@ -122,8 +120,8 @@ void Server::run()
 		{
 			// child process executes this block
 			portfolius::ExchangeRatesManager *manager = portfolius::ExchangeRatesManager::instance();
-			char *buffer = malloc(BUFFER_SIZE);
-			assert(NULL != buffer);
+			char *buffer = (char *)malloc(CLIENT_REQUEST_BUFSIZE);
+			assert(buffer);
 
 			/*
 			 * Should receive a JSON-encoded request
@@ -141,7 +139,10 @@ void Server::run()
 					"currency" : "ETH"
 				}
 			 */
-			read(client_socket, buffer, BUFFER_SIZE);
+			std::size_t bytes_received = read(client_socket, buffer, CLIENT_REQUEST_BUFSIZE);
+
+			if (0 >= bytes_received)
+				goto child_process_exit;
 
 		/*
 		 * Parses the JSON data into a DOM
@@ -181,6 +182,8 @@ void Server::run()
 					this->send_response(client, vec);
 				}
 			}
+
+		child_process_exit:
 
 			exit(0); // we won't be checking child process's return value, so just return 0 no matter what
 		}
