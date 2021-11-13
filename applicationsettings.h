@@ -1,7 +1,12 @@
+#ifndef __APPLICATION_SETTINGS_h__
+#define __APPLICATION_SETTINGS_h__ 1
+
+#include <iostream>
 #include "rapidjson/document.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <cstring>
 
 #define PATH_CONFIG_FILE	"./settings.json"
 
@@ -26,14 +31,14 @@ namespace portfolius
 
 			ApplicationSettings();
 			virtual ~ApplicationSettings();
-			bool is_valid_currency(std::string);
 			char **get_currencies();
 
 		private:
 			static ApplicationSettings *_instance;
 
-			void read_config_file();
+			void _read_config_file();
 
 			char **currencies = 0;
 	};
 }
+#endif
