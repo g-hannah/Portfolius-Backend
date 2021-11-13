@@ -69,8 +69,10 @@ void portfolius::ApplicationSettings::_read_config_file()
 		std::memcpy(this->currencies[i], currency.c_str(), currency.length());
 
 		char *key = currency.c_str();
-		std::vector<portfolius::Rate*> *vec = new std::vector<portfolius::Rate*>;
-		this->_map_primary[key] = vec;
+		std::vector<portfolius::Rate*> *vec1 = new std::vector<portfolius::Rate*>;
+		std::vector<portfolius::Rate*> *vec2 = new std::vector<portfolius::Rate*>;
+		this->_map_primary[key] = vec1;
+		this->_map_secondary[key] = vec2;
 	}
 }
 
