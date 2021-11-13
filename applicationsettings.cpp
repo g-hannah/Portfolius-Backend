@@ -1,18 +1,20 @@
 #include "applicationsettings.h"
 
-ApplicationSettings::ApplicationSettings()
+portfolius::ApplicationSettings *portfolius::ApplicationSettings::_instance = 0;
+
+portfolius::ApplicationSettings::ApplicationSettings()
 {
 	try
 	{
-		this->read_config_file();
+		this->_read_config_file();
 	}
-	catch (std::exception e)
+	catch (std::runtime_error e)
 	{
 		std::cerr << e.what() << std::endl;
 	}
 }
 
-ApplicationSettings::~ApplicationSettings()
+portfolius::ApplicationSettings::~ApplicationSettings()
 {
 	if (this->currencies)
 	{
@@ -23,20 +25,20 @@ ApplicationSettings::~ApplicationSettings()
 	}
 }
 
-ApplicationSettings::read_config_file()
+void portfolius::ApplicationSettings::_read_config_file()
 {
 	int fd = -1;
 
-	fd = open(PATH_CONFIG_FILE, O_RDONLY);
+	fd = ::open(PATH_CONFIG_FILE, O_RDONLY);
 	if (0 > fd)
-		throw std::exception("Failed to open config file");
+		throw std::runtime_error("Failed to open config file");
 
 	struct stat st;
 
-	if (lstat(fd, &st) < 0)
-		throw std::exception("Failed to get config file stats");
+	if (fstat(fd, &st) < 0)
+		throw std::runtime_error("Failed to get config file stats");
 
-	char *buffer = malloc(st.st_size+1);
+	char *buffer = (char *)malloc(st.st_size+1);
 	assert(nullptr != buffer);
 
 	buffer[st.st_size] = 0;
@@ -56,33 +58,19 @@ ApplicationSettings::read_config_file()
 
 	assert(v.IsArray());
 
-	this->currencies = calloc(v.Size()+1, sizeof(char *));
-	assert(nullptr != this->currencies);
+	this->currencies = (char **)calloc(v.Size()+1, sizeof(char *));
+	assert(this->currencies);
 	this->currencies[v.Size()] = nullptr;
 
 	for (rapidjson::SizeType i = 0, n = v.Size(); i < n; ++i)
 	{
 		std::string currency = v[i].GetString();
-		this->currencies[i] = calloc(currency.length()+1, 1);
-		memcpy(this->currencies[i], currency.data(), currency.length());
+		this->currencies[i] = (char *)calloc(currency.length()+1, 1);
+		std::memcpy(this->currencies[i], currency.c_str(), currency.length());
 	}
 }
 
-bool ApplicationSettings::is_valid_currency(std::string currency)
-{
-	if (!this->currencies)
-		return false;
-
-	for (int i = 0; this->currencies[i]; ++i)
-	{
-		if (!strcmp(currency, this->currencies[i]))
-			return true;
-	}
-
-	return false;
-}
-
-char **ApplicationSettings::get_currencies()
+char **portfolius::ApplicationSettings::get_currencies()
 {
 	return this->currencies;
 }
