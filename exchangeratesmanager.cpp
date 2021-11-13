@@ -27,6 +27,37 @@ portfolius::ExchangeRatesManager::~ExchangeRatesManager()
 {
 }
 
+/**
+ * Synchronise the primary and secondary maps after
+ * adding fresh exchange rates to the secondary map.
+ */
+void portfolius::ExchangeRatesManager::_synchronise_maps()
+{
+	portfolius::ApplicationSettings *settings = portfolius::ApplicationSettings::instance();
+	char **currencies = settings->get_currencies();
+
+	for (int i = 0; currencies[i]; ++i)
+	{
+		char *key = currencies[i];
+		std::vector<portfolius::Rate*> *updated = this->_map_secondary[key];
+		std::vector<portfolius::Rate*> *outdated = this->_map_primary[key];
+
+		for (int k = 0, n = outdated->size(); k < n; ++k)
+		{
+			portfolius::Rate *r = outdated[k];
+			delete r;
+		}
+
+		outdated->clear();
+
+		for (int k = 0, n = updated->size(); k < n; ++k)
+		{
+			portfolius::Rate *r = updated[k];
+			outdated->push_back(new Rate(r->get_timestamp(), r->get_value()));
+		}
+	}
+}
+
 void portfolius::ExchangeRatesManager::start()
 {
 /*
@@ -46,16 +77,26 @@ void portfolius::ExchangeRatesManager::start()
 	this->_running = true;
 	this->running_mutex.unlock();
 
+	portfolius::ApplicationSettings *settings = portfolius::ApplicationSettings::instance();
+	char **currencies = settings->get_currencies();
+
+	if (!currencies)
+	{
+		std::cerr << "No currencies for which to get rates" << std::endl;
+		return;
+	}
+
 	while (true)
 	{
-		if (!this->_map_secondary.empty())
+		for (int i = 0; currencies[i]; ++i)
 		{
-			std::map<std::string,std::vector<portfolius::Rate*>>::iterator iter = this->_map_secondary.begin();
+			const char *key = currencies[i];
+			std::map<std::string,std::vector<portfolius::Rate*>*>::iterator it = this->_map_secondary.find(key);
 
-			while (iter != this->_map_secondary.end())
-			{
-				std::string key = iter->first;
-				std::vector<portfolius::Rate*> vec = iter->second;
+			if (it == this->_map_secondary.end())
+				continue;
+
+			std::vector<portfolius::Rate*> *vec = it->second;
 
 				/*
 				 * Let the API think we are a web browser
@@ -103,6 +144,8 @@ void portfolius::ExchangeRatesManager::start()
 
 				std::string body = result->body;
 
+				std::cerr << body << std::endl;
+
 			/*
 			 * Response from API is of format:
 			 *
@@ -117,16 +160,14 @@ void portfolius::ExchangeRatesManager::start()
 				std::time_t now = _now();
 
 				vec.push_back(new portfolius::Rate(now, fresh_rate));
-			}
 		}
 
 		this->rates_mutex.lock();
 
-	/*
-	 * Copy over updated map
-	 */
-		this->_map_primary = this->_map_secondary;
+
+		this->_synchronise_maps();
 		this->_write_rates();
+
 
 		this->rates_mutex.unlock();
 
