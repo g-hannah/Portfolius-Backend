@@ -1,36 +1,45 @@
 #include "filehandler.h"
 
-FileHandler::FileHandler(std::string path)
+portfolius::FileHandler::FileHandler(std::string path)
 	: path(path)
 {
-	this->fd = open(this->path, O_RDWR);
+	static char buf[128];
+
+	this->fd = ::open(this->path.c_str(), O_RDWR);
+
 	if (0 > this->fd)
-		throw std::exception("Failed to open file " + this->path);
+	{
+		snprintf(buf, 128, "Failed to open file \"%s\"", this->path.c_str());
+		throw std::runtime_error(buf);
+	}
 
 	struct stat st;
 	if (fstat(this->fd, &st) < 0)
-		throw std::exception("Failed to lstat() file");
+	{
+		snprintf(buf, 128, "Failed to lstat() file \"%s\"", this->path.c_str());
+		throw std::runtime_error(buf);
+	}
 
 	this->size = st.st_size;
 }
 
-FileHandler::~FileHandler()
+portfolius::FileHandler::~FileHandler()
 {
-	close(this->fd);
+	::close(this->fd);
 	this->fd = -1;
 }
 
-std::string FileHandler::read_all()
+std::string portfolius::FileHandler::read_all()
 {
 	size_t to_read = this->size;
 	ssize_t bytes_read = 0;
-	char *buffer = malloc(to_read+1);
+	char *buffer = (char *)malloc(to_read+1);
 
 	assert(buffer);
 
 	char *p = buffer;
 
-	while (to_read && (bytes_read = read(this->fd, p, to_read)) > 0)
+	while (to_read && (bytes_read = ::read(this->fd, p, to_read)) > 0)
 	{
 		to_read -= bytes_read;
 		p += bytes_read;
