@@ -1,18 +1,19 @@
 #include "server.h"
 
-Server::Server()
+portfolius::Server *portfolius::Server::_instance = 0;
+
+portfolius::Server::Server()
 {
 	this->listening_socket = new ListeningSocket;
-	this->set_port_no(LISTENING_PORT);
 }
 
-Server::~Server()
+portfolius::Server::~Server()
 {
 	if (this->listening_socket)
 		delete this->listening_socket;
 }
 
-void Server::client_error(portfolius::Client& client, std::string message)
+void portfolius::Server::client_error(portfolius::Client *client, int type)
 {
 	rapidjson::Document d;
 	rapidjson::Document::AllocatorType& a = d.GetAllocator();
@@ -20,7 +21,23 @@ void Server::client_error(portfolius::Client& client, std::string message)
 	d.SetObject();
 
 	d.AddMember("status", "error", a);
-	d.AddMember("message", message, a);
+
+	switch (type)
+	{
+		case CLIENT_ERROR_INVALID_TYPE:
+
+			d.AddMember("message", "invalid request type", a);
+			break;
+
+		case CLIENT_ERROR_INVALID_CURRENCY:
+
+			d.AddMember("message", "invalid currency", a);
+			break;
+
+		default:
+
+			d.AddMember("message", "unknown error", a);
+	}
 
 /*
  * Write the JSON to a string
@@ -30,12 +47,12 @@ void Server::client_error(portfolius::Client& client, std::string message)
 
 	d.Accept(writer);
 
-	client.send(d.GetString());
+	client->send(d.GetString());
 
 	std::string out = d.GetString();
 }
 
-void Server::send_response(portfolius::Client& client, std::vector<Rate*> vec)
+void portfolius::Server::send_response(portfolius::Client *client, std::vector<portfolius::Rate*> vec)
 {
 	rapidjson::Document d;
 	rapidjson::Document::AllocatorType& a = d.GetAllocator();
@@ -43,11 +60,11 @@ void Server::send_response(portfolius::Client& client, std::vector<Rate*> vec)
 	d.SetObject();
 
 	rapidjson::Value arr(rapidjson::kArrayType);
-	d.AddMember("status", "ok");
+	d.AddMember("status", "ok", a);
 
 	for(int i = 0, n = vec.size(); i < n; ++i)
 	{
-		Rate *r = vec[i];
+		portfolius::Rate *r = vec[i];
 		rapidjson::Value v(rapidjson::kObjectType);
 		v.AddMember("timestamp", r->get_timestamp(), a);
 		v.AddMember("value", r->get_value(), a);
@@ -63,10 +80,10 @@ void Server::send_response(portfolius::Client& client, std::vector<Rate*> vec)
 
 	d.Accept(writer);
 
-	client.send(d.GetString());
+	client->send(d.GetString());
 }
 
-bool Server::_is_valid_type(std::string type)
+bool portfolius::Server::_is_valid_type(std::string type)
 {
 	bool ret = false;
 
@@ -75,7 +92,7 @@ bool Server::_is_valid_type(std::string type)
 	return ret;
 }
 
-bool Server::_is_valid_currency(std::string currency)
+bool portfolius::Server::_is_valid_currency(std::string currency)
 {
 	portfolius::ApplicationSettings *settings = portfolius::ApplicationSettings::instance();
 	char **currencies = settings->get_currencies();
@@ -85,23 +102,21 @@ bool Server::_is_valid_currency(std::string currency)
 
 	for (int i = 0; currencies[i]; ++i)
 	{
-		if (!strcmp(currency, currencies[i]))
+		if (!strcmp(currency.c_str(), currencies[i]))
 			return true;
 	}
 
 	return false;
 }
 
-void Server::run()
+void portfolius::Server::run()
 {
 	this->listening_socket->listen();
 
 	while (1)	
 	{
-		portfolius::Client& client = this->listening_socket->wait_for_client_request();
-
-		const int client_socket = client.get_socket();
-		const struct sockaddr_in& client_sin = client.get_sin();
+		portfolius::Client *client = this->listening_socket->wait_for_client_request();
+		const int client_socket = client->get_socket();
 
 		if (STDERR_FILENO >= client_socket)
 			continue;
@@ -113,7 +128,7 @@ void Server::run()
 
 		if (0 > pid)
 		{
-			throw std::exception("Failed to fork new process");
+			throw std::runtime_error("Failed to fork new process");
 		}
 		else
 		if (0 == pid)
@@ -142,7 +157,10 @@ void Server::run()
 			std::size_t bytes_received = read(client_socket, buffer, CLIENT_REQUEST_BUFSIZE);
 
 			if (0 >= bytes_received)
-				goto child_process_exit;
+			{
+				delete client;
+				exit(1);
+			}
 
 		/*
 		 * Parses the JSON data into a DOM
@@ -158,32 +176,30 @@ void Server::run()
 
 			if (!this->_is_valid_type(value_type))
 			{
-				this->client_error(client, "invalid request type");
+				this->client_error(client, CLIENT_ERROR_INVALID_TYPE);
 			}
 			else
 			if (!this->_is_valid_currency(value_currency))
 			{
-				this->client_error(client, "invalid currency");
+				this->client_error(client, CLIENT_ERROR_INVALID_CURRENCY);
 			}
 			else
 			{
-				if (!strcmp(type.c_str(), REQUEST_TYPE_SINGLE_RATE))
+				if (!strcmp(value_type.c_str(), REQUEST_TYPE_SINGLE_RATE))
 				{
-					Rate& rate = manager->get_rate_for_currency(currency);
-					std::vector<Rate*> vec;
-					vec.push_back(new Rate(rate.get_timestamp(), rate.get_value()));
+					portfolius::Rate *rate = manager->get_rate_for_currency(value_currency);
+					std::vector<portfolius::Rate*> vec;
+					vec.push_back(rate);
 
 					this->send_response(client, vec);
 				}
 				else
-				if (!strcmp(type.c_str(), REQUEST_TYPE_HISTORIC))
+				if (!strcmp(value_type.c_str(), REQUEST_TYPE_HISTORIC))
 				{
-					std::vector<Rate*> vec = manager->get_rates_history_for_currency(currency);
+					std::vector<portfolius::Rate*> vec = manager->get_rates_history_for_currency(value_currency);
 					this->send_response(client, vec);
 				}
 			}
-
-		child_process_exit:
 
 			exit(0); // we won't be checking child process's return value, so just return 0 no matter what
 		}
