@@ -11,11 +11,7 @@ portfolius::ExchangeRatesManager::ExchangeRatesManager()
 {
 	try
 	{
-		this->_map_primary = this->_read_rates();
-	/*
-	 * std::map's copy ctor will copy everything
-	 */
-		this->_map_secondary = this->_map_primary;
+		this->_read_rates();
 	}
 	catch (std::runtime_error e)
 	{
@@ -44,7 +40,7 @@ void portfolius::ExchangeRatesManager::_synchronise_maps()
 
 		for (int k = 0, n = outdated->size(); k < n; ++k)
 		{
-			portfolius::Rate *r = outdated[k];
+			portfolius::Rate *r = outdated->at(k);
 			delete r;
 		}
 
@@ -52,7 +48,7 @@ void portfolius::ExchangeRatesManager::_synchronise_maps()
 
 		for (int k = 0, n = updated->size(); k < n; ++k)
 		{
-			portfolius::Rate *r = updated[k];
+			portfolius::Rate *r = updated->at(k);
 			outdated->push_back(new Rate(r->get_timestamp(), r->get_value()));
 		}
 	}
@@ -133,7 +129,7 @@ void portfolius::ExchangeRatesManager::start()
 			char *buf = (char *)malloc(128);
 			assert(buf);
 
-			snprintf(buf, 128, "/data/price?%s=%s&%s=GBP", API_CRYPTO_ARG, key.c_str(), API_CURRENCY_ARG);
+			snprintf(buf, 128, "/data/price?%s=%s&%s=GBP", API_CRYPTO_ARG, key, API_CURRENCY_ARG);
 
 			std::cerr << "requesting \"" << buf << "\"" << std::endl;
 			auto result = client.Get(buf);
@@ -160,7 +156,7 @@ void portfolius::ExchangeRatesManager::start()
 			//std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			std::time_t now = _now();
 
-			vec.push_back(new portfolius::Rate(now, fresh_rate));
+			vec->push_back(new portfolius::Rate(now, fresh_rate));
 		}
 
 		this->rates_mutex.lock();
@@ -179,15 +175,13 @@ void portfolius::ExchangeRatesManager::start()
 /**
  * Reads rates into map
  */
-std::map<std::string,std::vector<portfolius::Rate*>> portfolius::ExchangeRatesManager::_read_rates()
+void portfolius::ExchangeRatesManager::_read_rates()
 {
 	ApplicationSettings *settings = ApplicationSettings::instance();
 	char **currencies = settings->get_currencies();
 
 	if (!currencies)
-		return this->_map_primary;
-
-	std::map<std::string,std::vector<portfolius::Rate*>> map;
+		return;
 
 	for (int i = 0; currencies[i]; ++i)
 	{
@@ -210,21 +204,21 @@ std::map<std::string,std::vector<portfolius::Rate*>> portfolius::ExchangeRatesMa
 
 		assert(v.IsArray());
 
-		std::vector<portfolius::Rate*> vec;
+		std::vector<portfolius::Rate*> *vec = new std::vector<portfolius::Rate*>;
 
 		for (rapidjson::SizeType k = 0, n = v.Size(); k < n; ++k)
 		{
 			rapidjson::Value& v_ts = v[i]["timestamp"];
 			rapidjson::Value& v_val = v[i]["value"];
 
-			vec.push_back(new portfolius::Rate(v_ts.GetDouble(), v_val.GetDouble()));
+			vec->push_back(new portfolius::Rate(v_ts.GetDouble(), v_val.GetDouble()));
 		}
 
 		char *key = currencies[i];
-		map[key] = vec;
+		this->_map_secondary[key] = vec;
 	}
 
-	return map;
+	this->_synchronise_maps();
 }
 
 
@@ -238,24 +232,24 @@ std::map<std::string,std::vector<portfolius::Rate*>> portfolius::ExchangeRatesMa
  */
 void portfolius::ExchangeRatesManager::_write_rates()
 {
-	std::map<std::string,std::vector<portfolius::Rate*>> map = this->_map_primary;
-	std::map<std::string,std::vector<portfolius::Rate*>>::iterator iter = map.begin();
+	std::map<std::string,std::vector<portfolius::Rate*>*> map = this->_map_primary;
+	std::map<std::string,std::vector<portfolius::Rate*>*>::iterator iter = map.begin();
 
 	while (iter != map.end())
 	{
 		std::string key = iter->first;
-		std::vector<portfolius::Rate*> vec = iter->second;
+		std::vector<portfolius::Rate*> *vec = iter->second;
 
 		rapidjson::Document d;
 		rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 		d.SetObject();
 		rapidjson::Value arr(rapidjson::kArrayType);
 
-		for (int i = 0, n = vec.size(); i < n; ++i)
+		for (int i = 0, n = vec->size(); i < n; ++i)
 		{
 			rapidjson::Value val(rapidjson::kObjectType);
-			val.AddMember("timestamp", vec[i]->get_timestamp(), allocator);
-			val.AddMember("value", vec[i]->get_value(), allocator);
+			val.AddMember("timestamp", vec->at(i)->get_timestamp(), allocator);
+			val.AddMember("value", vec->at(i)->get_value(), allocator);
 			arr.PushBack(val, allocator);
 		}
 
@@ -301,8 +295,8 @@ portfolius::Rate* portfolius::ExchangeRatesManager::get_rate_for_currency(std::s
  * Critical section
  */
 
-	std::map<std::string,std::vector<portfolius::Rate*>> rates = this->_map_primary;
-	std::map<std::string,std::vector<portfolius::Rate*>>::iterator iter = rates.find(currency.c_str());
+	std::map<std::string,std::vector<portfolius::Rate*>*> rates = this->_map_primary;
+	std::map<std::string,std::vector<portfolius::Rate*>*>::iterator iter = rates.find(currency.c_str());
 
 	if (iter == rates.end())
 	{
@@ -310,8 +304,8 @@ portfolius::Rate* portfolius::ExchangeRatesManager::get_rate_for_currency(std::s
 		throw std::runtime_error(currency);
 	}
 
-	std::vector<portfolius::Rate*> vec = iter->second;
-	portfolius::Rate *rate = vec[vec.size()-1];
+	std::vector<portfolius::Rate*> *vec = iter->second;
+	portfolius::Rate *rate = vec->at(vec->size()-1);
 
 	this->rates_mutex.unlock();
 
@@ -322,15 +316,15 @@ portfolius::Rate* portfolius::ExchangeRatesManager::get_rate_for_currency(std::s
  * This method can be called from another thread, so
  * a mutex to protect the data structures is necessary
  */
-std::vector<portfolius::Rate*> portfolius::ExchangeRatesManager::get_rates_history_for_currency(std::string currency)
+std::vector<portfolius::Rate*> *portfolius::ExchangeRatesManager::get_rates_history_for_currency(std::string currency)
 {
 	this->rates_mutex.lock();
 /*
  * Critical section
  */
 
-	std::map<std::string,std::vector<portfolius::Rate*>> rates = this->_map_primary;
-	std::map<std::string,std::vector<portfolius::Rate*>>::iterator iter = rates.find(currency.c_str());
+	std::map<std::string,std::vector<portfolius::Rate*>*> rates = this->_map_primary;
+	std::map<std::string,std::vector<portfolius::Rate*>*>::iterator iter = rates.find(currency.c_str());
 
 	if (iter == rates.end())
 	{
