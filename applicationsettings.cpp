@@ -67,6 +67,10 @@ void portfolius::ApplicationSettings::_read_config_file()
 		std::string currency = v[i].GetString();
 		this->currencies[i] = (char *)calloc(currency.length()+1, 1);
 		std::memcpy(this->currencies[i], currency.c_str(), currency.length());
+
+		char *key = currency.c_str();
+		std::vector<portfolius::Rate*> *vec = new std::vector<portfolius::Rate*>;
+		this->_map_primary[key] = vec;
 	}
 }
 
