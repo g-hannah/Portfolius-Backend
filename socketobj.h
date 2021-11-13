@@ -33,7 +33,7 @@ namespace portfolius
 			int get_socket();
 			void set_socket(int);
 
-		private:
+		protected:
 			int sock;
 			in_port_t port;
 	};
