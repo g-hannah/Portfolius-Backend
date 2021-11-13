@@ -4,7 +4,7 @@ portfolius::Server *portfolius::Server::_instance = 0;
 
 portfolius::Server::Server()
 {
-	this->listening_socket = new ListeningSocket;
+	this->listening_socket = new portfolius::ListeningSocket;
 }
 
 portfolius::Server::~Server()
@@ -15,6 +15,9 @@ portfolius::Server::~Server()
 
 void portfolius::Server::client_error(portfolius::Client *client, int type)
 {
+	if (!client)
+		return;
+
 	rapidjson::Document d;
 	rapidjson::Document::AllocatorType& a = d.GetAllocator();
 
@@ -48,8 +51,6 @@ void portfolius::Server::client_error(portfolius::Client *client, int type)
 	d.Accept(writer);
 
 	client->send(d.GetString());
-
-	std::string out = d.GetString();
 }
 
 void portfolius::Server::send_response(portfolius::Client *client, std::vector<portfolius::Rate*> vec)
