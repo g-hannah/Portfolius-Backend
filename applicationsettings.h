@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <cstring>
+#include <vector>
+#include "exchangeratesmanager.h"
+#include "rate.h"
 
 #define PATH_CONFIG_FILE	"./settings.json"
 
