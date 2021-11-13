@@ -1,51 +1,62 @@
 #include "client.h"
 
-Client::Client()
+portfolius::Client::Client()
 {
 	this->sock = -1;
 }
 
-Client::Client(Client& c)
+portfolius::Client::Client(Client& c)
 {
 	this->sock = c.sock;
 	this->sin = c.sin;
 }
 
-Client::~Client()
+portfolius::Client::~Client()
 {
 	if (STDERR_FILENO < this->sock)
 		close(this->sock);
 }
 
-void Client::set_socket(int s)
+void portfolius::Client::set_socket(int s)
 {
 	this->sock = s;
 }
 
-int Client::get_socket()
+int portfolius::Client::get_socket()
 {
 	return this->sock;
 }
 
-void Client::set_sin(struct sockaddr_in& sin)
+void portfolius::Client::set_sin(struct sockaddr_in *sin)
 {
-	this->sin = sin;
+	std::memcpy(&this->sin, sin, sizeof(*sin));
 }
 
-void struct sockaddr_in& Client::get_sin()
+struct sockaddr_in& portfolius::Client::get_sin()
 {
 	return this->sin;
 }
 
-std::size_t send(std::string data)
+std::size_t portfolius::Client::send(std::string data)
 {
 	std::size_t to_send = data.length();
 	std::size_t num = 0;
-	char *p = data.c_str();
 
-	while (to_send > 0 && (num = send(this->sock, p, to_send)) > 0)
+	char *copy = (char *)malloc(data.length()+1);
+	assert(copy);
+	std::memcpy(copy, data.c_str(), data.length());
+	copy[data.length()] = 0;
+
+	char *p = copy;
+
+	while (to_send > 0 && (num = ::send(this->sock, p, to_send, 0)) > 0)
 	{
 		to_send -= num;
 		p += num;
 	}
+
+	free(copy);
+	copy = NULL;
+
+	return data.length();
 }
