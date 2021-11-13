@@ -51,6 +51,8 @@ void portfolius::Server::client_error(portfolius::Client *client, int type)
 	d.Accept(writer);
 
 	client->send(d.GetString());
+	std::cerr << "sent response to client" << std::endl;
+	std::cerr << d.GetString() << std::endl;
 }
 
 void portfolius::Server::send_response(portfolius::Client *client, std::vector<portfolius::Rate*> vec)
@@ -82,6 +84,8 @@ void portfolius::Server::send_response(portfolius::Client *client, std::vector<p
 	d.Accept(writer);
 
 	client->send(d.GetString());
+	std::cerr << "sent response to client" << std::endl;
+	std::cerr << d.GetString() << std::endl;
 }
 
 bool portfolius::Server::_is_valid_type(std::string type)
@@ -114,13 +118,16 @@ void portfolius::Server::run()
 {
 	this->listening_socket->listen();
 
-	while (1)	
+	while (1)
 	{
+		std::cerr << "Waiting for client request" << std::endl;
 		portfolius::Client *client = this->listening_socket->wait_for_client_request();
 		const int client_socket = client->get_socket();
 
 		if (STDERR_FILENO >= client_socket)
 			continue;
+
+		std::cerr << "Received request from client" << std::endl;
 
 	/*
 	 * Fork a new process to handle the client's request
@@ -129,7 +136,8 @@ void portfolius::Server::run()
 
 		if (0 > pid)
 		{
-			throw std::runtime_error("Failed to fork new process");
+			std::cerr << "error forking new process..." << std::endl;
+			//throw std::runtime_error("Failed to fork new process");
 		}
 		else
 		if (0 == pid)
@@ -156,12 +164,15 @@ void portfolius::Server::run()
 				}
 			 */
 			std::size_t bytes_received = read(client_socket, buffer, CLIENT_REQUEST_BUFSIZE);
+			std::cerr << "read " << bytes_received << " bytes from client socket" << std::endl;
 
 			if (0 >= bytes_received)
 			{
 				delete client;
 				exit(1);
 			}
+
+			std::cerr << buffer << std::endl;
 
 		/*
 		 * Parses the JSON data into a DOM
