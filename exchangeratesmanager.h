@@ -4,12 +4,6 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 
 #include <assert.h>
-#include "httplib/httplib.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/memorystream.h"
 #include <signal.h>
 #include <vector>
 #include <mutex>
@@ -17,8 +11,15 @@
 #include <chrono>
 #include <cstdio>
 #include <cstddef>
-
-#define API_ENDPOINT ""
+#include "httplib/httplib.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/filewritestream.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/memorystream.h"
+#include "applicationsettings.h"
+#include "filehandler.h"
+#include "rate.h"
 
 #define FILESTREAMWRITER_BUFSIZE	32768
 
@@ -51,18 +52,18 @@ namespace portfolius
 			}
 
 			void start();
-			Rate& get_rate_for_currency(std::string);
-			std::vector<Rate*> get_rates_history_for_currency(std::string);
+			portfolius::Rate* get_rate_for_currency(std::string);
+			std::vector<portfolius::Rate*> get_rates_history_for_currency(std::string);
 
 		private:
 
-			static ExchangeRatesManager *_instance = 0;
+			static ExchangeRatesManager *_instance;
 			ExchangeRatesManager();
 			virtual ~ExchangeRatesManager();
 
 			bool _running = false;
 			void _write_rates();
-			std::map<std::string,std::vector<Rate*>> _read_rates();
+			std::map<std::string,std::vector<portfolius::Rate*> > _read_rates();
 
 		/*
 		 * When we are iterating through the map's keys in order
@@ -78,8 +79,8 @@ namespace portfolius
 		 * when getting fresh rates. Once we are done, lock the
 		 * mutex for the primary one and copy over the data.
 		 */
-			std::map<std::string,std::vector<Rate*>> _map_secondary;
-			std::map<std::string,std::vector<Rate*>> _map_primary;
+			std::map<std::string,std::vector<portfolius::Rate*>> _map_secondary;
+			std::map<std::string,std::vector<portfolius::Rate*>> _map_primary;
 			std::mutex rates_mutex;
 			std::mutex running_mutex;
 	};
