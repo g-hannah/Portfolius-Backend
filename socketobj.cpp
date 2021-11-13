@@ -1,9 +1,9 @@
 #include <assert.h>
-#include "socketobh.h"
+#include "socketobj.h"
 
 #define clear_struct(s) memset((s), 0, sizeof(*(s)))
 
-SocketObj::SocketObj()
+portfolius::SocketObj::SocketObj()
 {
 	this->sock = -1;
 /*
@@ -21,32 +21,32 @@ SocketObj::SocketObj()
 */
 }
 
-SocketObj::SocketObj(SocketObj *obj)
+portfolius::SocketObj::SocketObj(SocketObj *obj)
 {
 	this->sock = obj->sock;
 	
 }
 
-SocketObj::~SocketObj()
+portfolius::SocketObj::~SocketObj()
 {
 }
 
-void SocketObj::set_port(const uint16_t port)
+void portfolius::SocketObj::set_port(const uint16_t port)
 {
 	this->port = port;
 }
 
-uint16_t SocketObj::get_port()
+uint16_t portfolius::SocketObj::get_port()
 {
 	return this->port;
 }
 
-void SocketObj::set_socket(const int sock)
+void portfolius::SocketObj::set_socket(const int sock)
 {
 	this->sock = sock;
 }
 
-int SocketObj::get_socket()
+int portfolius::SocketObj::get_socket()
 {
 	return this->sock;
 }
