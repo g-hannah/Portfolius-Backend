@@ -62,17 +62,20 @@ void portfolius::ApplicationSettings::_read_config_file()
 	assert(this->currencies);
 	this->currencies[v.Size()] = nullptr;
 
+	portfolius::ExchangeRatesManager *manager = portfolius::ExchangeRatesManager::instance();
+
 	for (rapidjson::SizeType i = 0, n = v.Size(); i < n; ++i)
 	{
 		std::string currency = v[i].GetString();
 		this->currencies[i] = (char *)calloc(currency.length()+1, 1);
 		std::memcpy(this->currencies[i], currency.c_str(), currency.length());
 
-		char *key = currency.c_str();
+		const char *key = currency.c_str();
 		std::vector<portfolius::Rate*> *vec1 = new std::vector<portfolius::Rate*>;
 		std::vector<portfolius::Rate*> *vec2 = new std::vector<portfolius::Rate*>;
-		this->_map_primary[key] = vec1;
-		this->_map_secondary[key] = vec2;
+
+		manager->_map_primary[key] = vec1;
+		manager->_map_secondary[key] = vec2;
 	}
 }
 
