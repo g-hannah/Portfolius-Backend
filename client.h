@@ -1,7 +1,15 @@
 #ifndef __CLIENT_h__
 #define __CLIENT_h__ 1
 
+#include <assert.h>
+#include <cstddef>
+#include <cstring>
+#include <string>
+#include <fcntl.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 /**
  * A class to represent a client
@@ -22,12 +30,14 @@ namespace portfolius
 			virtual ~Client();
 
 			void set_socket(int);
-			void set_sin(struct sockaddr_in&);
+			void set_sin(struct sockaddr_in *);
+			int get_socket();
+			struct sockaddr_in& get_sin();
 			std::size_t send(std::string);
 
 		private:
 			int sock;
-			struct sockaddr_in& sin;
+			struct sockaddr_in sin = {0};
 	};
 }
 
