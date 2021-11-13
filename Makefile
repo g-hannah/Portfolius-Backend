@@ -26,7 +26,7 @@ LIBRARIES := ./lib/libssl.a ./lib/libcrypto.a -lpthread -ldl
 
 INCLUDES := -I./include -I./lib/openssl-1.1.1k/include
 
-COMPILE_FLAGS := -Wall -Werror -D_FORTIFY_SOURCE=2 -fstack-protector-all -Wl,-z,relro
+COMPILE_FLAGS := -Wall -Werror -D_FORTIFY_SOURCE=2 -fstack-protector-all -z noexecstack -Wl,-z,relro
 
 .PHONY: clean
 
