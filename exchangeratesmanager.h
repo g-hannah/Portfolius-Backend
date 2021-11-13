@@ -62,6 +62,7 @@ namespace portfolius
 			virtual ~ExchangeRatesManager();
 
 			bool _running = false;
+			void _synchronise_maps();
 			void _write_rates();
 			std::map<std::string,std::vector<portfolius::Rate*> > _read_rates();
 
