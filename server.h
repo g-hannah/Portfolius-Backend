@@ -52,7 +52,7 @@ namespace portfolius
 			portfolius::ListeningSocket *listening_socket = 0;
 
 			void client_error(portfolius::Client *, int);
-			void send_response(portfolius::Client *, std::vector<portfolius::Rate*>);
+			void send_response(portfolius::Client *, std::vector<portfolius::Rate*> *);
 			bool _is_valid_type(std::string);
 			bool _is_valid_currency(std::string);
 	};
