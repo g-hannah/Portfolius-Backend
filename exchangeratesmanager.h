@@ -41,6 +41,8 @@ namespace portfolius
 {
 	class ExchangeRatesManager
 	{
+		friend class ApplicationSettings;
+
 		public:
 
 			static ExchangeRatesManager *instance()
@@ -53,7 +55,7 @@ namespace portfolius
 
 			void start();
 			portfolius::Rate* get_rate_for_currency(std::string);
-			std::vector<portfolius::Rate*> get_rates_history_for_currency(std::string);
+			std::vector<portfolius::Rate*> *get_rates_history_for_currency(std::string);
 
 		private:
 
@@ -64,7 +66,7 @@ namespace portfolius
 			bool _running = false;
 			void _synchronise_maps();
 			void _write_rates();
-			std::map<std::string,std::vector<portfolius::Rate*> > _read_rates();
+			void _read_rates();
 
 		/*
 		 * When we are iterating through the map's keys in order
@@ -80,8 +82,8 @@ namespace portfolius
 		 * when getting fresh rates. Once we are done, lock the
 		 * mutex for the primary one and copy over the data.
 		 */
-			std::map<std::string,std::vector<portfolius::Rate*>> _map_secondary;
-			std::map<std::string,std::vector<portfolius::Rate*>> _map_primary;
+			std::map<std::string,std::vector<portfolius::Rate*>*> _map_secondary;
+			std::map<std::string,std::vector<portfolius::Rate*>*> _map_primary;
 			std::mutex rates_mutex;
 			std::mutex running_mutex;
 	};
