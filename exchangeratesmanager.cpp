@@ -98,18 +98,18 @@ void portfolius::ExchangeRatesManager::start()
 
 			std::vector<portfolius::Rate*> *vec = it->second;
 
-				/*
-				 * Let the API think we are a web browser
-				 * (some servers will ignore anything that isn't)
-				 */
-				httplib::Headers headers = {
-					{ "User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0" },
-					{ "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8" }
-				};
+			/*
+			 * Let the API think we are a web browser
+			 * (some servers will ignore anything that isn't)
+			 */
+			httplib::Headers headers = {
+				{ "User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0" },
+				{ "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8" }
+			};
 
 
-				std::string endpoint = API_ENDPOINT;
-				httplib::SSLClient client(endpoint);
+			std::string endpoint = API_ENDPOINT;
+			httplib::SSLClient client(endpoint);
 
 			/*
 			 * According to the httplib documentation, when using an SSL client,
@@ -121,45 +121,46 @@ void portfolius::ExchangeRatesManager::start()
 			 * of the process - IEEE POSIX Std 1003.1 p. 334
 			 */
 
-				struct sigaction sa_old = {0};
-				struct sigaction sa_new = {0};
+			struct sigaction sa_old = {0};
+			struct sigaction sa_new = {0};
 
 			/*
 			 * SIG_IGN - requests that the signal be ignored - IEEE POSIX Std 1003.1 p. 332
 			 */
-				sa_new.sa_handler = SIG_IGN;
-				sigaction(SIGPIPE, &sa_new, &sa_old);
+			sa_new.sa_handler = SIG_IGN;
+			sigaction(SIGPIPE, &sa_new, &sa_old);
 
-				char *buf = (char *)malloc(128);
-				assert(buf);
+			char *buf = (char *)malloc(128);
+			assert(buf);
 
-				snprintf(buf, 128, "/data/price?%s=%s&%s=GBP", API_CRYPTO_ARG, key.c_str(), API_CURRENCY_ARG);
+			snprintf(buf, 128, "/data/price?%s=%s&%s=GBP", API_CRYPTO_ARG, key.c_str(), API_CURRENCY_ARG);
 
-				auto result = client.Get(buf);
+			std::cerr << "requesting \"" << buf << "\"" << std::endl;
+			auto result = client.Get(buf);
 
-				free(buf);
-				buf = NULL;
+			free(buf);
+			buf = NULL;
 
-				sigaction(SIGPIPE, &sa_old, NULL);
+			sigaction(SIGPIPE, &sa_old, NULL);
 
-				std::string body = result->body;
+			std::string body = result->body;
 
-				std::cerr << body << std::endl;
+			std::cerr << body << std::endl;
 
 			/*
 			 * Response from API is of format:
 			 *
 			 * { "GBP" : <value> }
 			 */
-				rapidjson::Document d2;
-				d2.Parse(body.c_str());
-				rapidjson::Value& v2 = d2["GBP"];
+			rapidjson::Document d2;
+			d2.Parse(body.c_str());
+			rapidjson::Value& v2 = d2["GBP"];
 
-				double fresh_rate = v2.GetDouble();
-				//std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-				std::time_t now = _now();
+			double fresh_rate = v2.GetDouble();
+			//std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+			std::time_t now = _now();
 
-				vec.push_back(new portfolius::Rate(now, fresh_rate));
+			vec.push_back(new portfolius::Rate(now, fresh_rate));
 		}
 
 		this->rates_mutex.lock();
