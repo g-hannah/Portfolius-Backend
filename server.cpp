@@ -55,7 +55,7 @@ void portfolius::Server::client_error(portfolius::Client *client, int type)
 	std::cerr << d.GetString() << std::endl;
 }
 
-void portfolius::Server::send_response(portfolius::Client *client, std::vector<portfolius::Rate*> vec)
+void portfolius::Server::send_response(portfolius::Client *client, std::vector<portfolius::Rate*> *vec)
 {
 	rapidjson::Document d;
 	rapidjson::Document::AllocatorType& a = d.GetAllocator();
@@ -65,9 +65,9 @@ void portfolius::Server::send_response(portfolius::Client *client, std::vector<p
 	rapidjson::Value arr(rapidjson::kArrayType);
 	d.AddMember("status", "ok", a);
 
-	for(int i = 0, n = vec.size(); i < n; ++i)
+	for(int i = 0, n = vec->size(); i < n; ++i)
 	{
-		portfolius::Rate *r = vec[i];
+		portfolius::Rate *r = vec->at(i);
 		rapidjson::Value v(rapidjson::kObjectType);
 		v.AddMember("timestamp", r->get_timestamp(), a);
 		v.AddMember("value", r->get_value(), a);
@@ -200,15 +200,17 @@ void portfolius::Server::run()
 				if (!strcmp(value_type.c_str(), REQUEST_TYPE_SINGLE_RATE))
 				{
 					portfolius::Rate *rate = manager->get_rate_for_currency(value_currency);
-					std::vector<portfolius::Rate*> vec;
-					vec.push_back(rate);
+					std::vector<portfolius::Rate*> *vec = new std::vector<portfolius::Rate*>;
+					vec->push_back(rate);
 
 					this->send_response(client, vec);
+
+					delete vec;
 				}
 				else
 				if (!strcmp(value_type.c_str(), REQUEST_TYPE_HISTORIC))
 				{
-					std::vector<portfolius::Rate*> vec = manager->get_rates_history_for_currency(value_currency);
+					std::vector<portfolius::Rate*> *vec = manager->get_rates_history_for_currency(value_currency);
 					this->send_response(client, vec);
 				}
 			}
