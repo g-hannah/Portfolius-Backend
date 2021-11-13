@@ -1,61 +1,44 @@
 #include "listeningsocket.h"
 
-ListeningSocket::ListeningSocket()
+portfolius::ListeningSocket::ListeningSocket()
 {
 }
 
-ListeningSocket::ListeningSocket(ListeningSocket *other)
+portfolius::ListeningSocket::~ListeningSocket()
 {
-	this->sock = other->sock;
-
-	if (other->client_sin)
-	{
-		this->client_sin = malloc(sizeof(struct sockaddr_in));
-		assert(nullptr != this->client_sin);
-		memcpy(this->client_sin, other->client_sin, sizeof(*other->client_sin));
-	}
 }
 
-ListeningSocket::~ListeningSocket()
-{
-	if (this->client_sin)
-		free(this->client_sin);
-}
-
-void ListeningSocket::listen()
+void portfolius::ListeningSocket::listen()
 {
 	if ((this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) < 0)
-		throw std::exception("Failed to create socket");
+		throw std::runtime_error("Failed to create socket");
 
-	struct sockaddr_in sin;
-
-	clear_struct(&sin);
+	struct sockaddr_in sin = {0,};
 
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = INADDR_ANY;
 	sin.sin_port = htons(port);
 
-	if (bind(this->sock, std::static_cast<struct sockaddr *>(&sin), sizeof(sin)))
-		throw std::exception("Failed to bind socket");
+	if (bind(this->sock, (struct sockaddr *)&sin, sizeof(sin)))
+		throw std::runtime_error("Failed to bind socket");
 
-	if (listen(this->sock, this->value_backlog) < 0)
-		throw std::exception("Failed to listen on socket");
+	if (::listen(this->sock, BACKLOG_VALUE) < 0)
+		throw std::runtime_error("Failed to listen on socket");
 }
 
-Client& ListeningSocket::wait_for_client_request()
+portfolius::Client *portfolius::ListeningSocket::wait_for_client_request()
 {
-	Client client;
+	portfolius::Client *client = new Client;
 	socklen_t socklen = 0;
 	
-	client.sock = accept(this->sock, std::static_cast<struct sockaddr *>(&client.sin), &socklen);
+	client->sock = accept(this->sock, (struct sockaddr *)&client->sin, &socklen);
 
-	if (0 > client.sock)
-		throw std::exception("Error accepting client request");
+	if (0 > client->sock)
+		throw std::runtime_error("Error accepting client request");
 
 	return client;
 }
 
-void ListeningSocket::send(std::string data)
+void portfolius::ListeningSocket::send(std::string data)
 {
-	assert(nullptr != this->client_sin);
 }
