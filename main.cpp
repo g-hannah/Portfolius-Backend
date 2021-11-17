@@ -9,7 +9,8 @@ main(void)
 	 * Create separate thread within which the
 	 * exchange rates manager will run
 	 */
-	std::thread t_exchangeratesmanager(&portfolius::ExchangeRatesManager::start, portfolius::ExchangeRatesManager::instance());
+	portfolius::ExchangeRatesManager *manager = portfolius::ExchangeRatesManager::instance();
+	std::thread t_exchangeratesmanager(&portfolius::ExchangeRatesManager::start, manager);
 
 	/*
 	 * Server runs in main thread
