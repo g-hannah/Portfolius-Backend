@@ -13,14 +13,23 @@ namespace portfolius
 	class FileHandler
 	{
 		public:
-			FileHandler(std::string);
+			explicit FileHandler(std::string);
+			FileHandler(FileHandler& other);
+			FileHandler(FileHandler&& other);
+			FileHandler& operator=(FileHandler& other);
+			FileHandler& operator=(FileHandler&& other);
 			virtual ~FileHandler();
+
 			std::string read_all();
+			void open_file();
+			bool is_error();
 
 		private:
 			std::string path;
 			int fd;
 			size_t size;
+			bool error = false;
+			std::string reason;
 	};
 }
 #endif
