@@ -3,30 +3,89 @@
 portfolius::FileHandler::FileHandler(std::string path)
 	: path(path)
 {
-	static char buf[128];
+}
 
-	this->fd = ::open(this->path.c_str(), O_RDWR);
+portfolius::FileHandler::FileHandler(FileHandler& other)
+{
+	this->fd = other.fd;
+	this->path = other.path;
+	this->size = other.size;
+	this->error = other.error;
+	this->reason = other.reason;
+}
 
-	if (0 > this->fd)
-	{
-		snprintf(buf, 128, "Failed to open file \"%s\"", this->path.c_str());
-		throw std::runtime_error(buf);
-	}
+portfolius::FileHandler::FileHandler(FileHandler&& other)
+{
+	this->fd = other.fd;
+	this->path = std::move(other.path);
+	this->size = other.size;
+	this->error = other.error;
+	this->reason = std::move(other.reason);
+}
 
-	struct stat st;
-	if (fstat(this->fd, &st) < 0)
-	{
-		snprintf(buf, 128, "Failed to lstat() file \"%s\"", this->path.c_str());
-		throw std::runtime_error(buf);
-	}
+portfolius::FileHandler& operator=(portfolius::FileHandler& other)
+{
+	this->fd = other.fd;
+	this->path = other.path;
+	this->size = other.size;
+	this->error = other.error;
+	this->reason = other.reason;
 
-	this->size = st.st_size;
+	return *this;
+}
+
+portfolius::FileHandler& operator=(portfolius::FileHandler&& other)
+{
+	this->fd = other.fd;
+	this->path = std::move(other.path);
+	this->size = other.size;
+	this->error = other.error;
+	this->reason = std::move(other.reason);
+
+	return *this;
 }
 
 portfolius::FileHandler::~FileHandler()
 {
 	::close(this->fd);
 	this->fd = -1;
+}
+
+bool portfolius::FileHandler::is_error()
+{
+	bool err = this->error;
+	this->error = false;
+	return err;
+}
+
+void portfolius::FileHandler::open_file()
+{
+	//static char buf[128];
+
+	this->fd = ::open(this->path.c_str(), O_RDWR);
+
+	if (0 > this->fd)
+	{
+		//snprintf(buf, 128, "Failed to open file \"%s\"", this->path.c_str());
+		//goto end;
+		//throw std::runtime_error(buf);
+		this->error = true;
+		this->reason = "failed to open file";
+		return;
+	}
+
+	struct stat st;
+	if (fstat(this->fd, &st) < 0)
+	{
+		//snprintf(buf, 128, "Failed to lstat() file \"%s\"", this->path.c_str());
+		//goto end;
+		//throw std::runtime_error(buf);
+		this->error = true;
+		this->reason = "failed to lstat() file";
+		return;
+	}
+
+	this->size = st.st_size;
 }
 
 std::string portfolius::FileHandler::read_all()
