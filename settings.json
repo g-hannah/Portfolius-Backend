@@ -1,6 +1,11 @@
 {
 	"currencies" : [
-		"BTC",
-		"ETH"
+		{
+			"name" : "BTC"
+		},
+		{
+			"name" : "ETH"
+
+		}
 	]
 }
