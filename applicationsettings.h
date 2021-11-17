@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <cstring>
 #include <vector>
+#include <mutex>
 #include "exchangeratesmanager.h"
 #include "rate.h"
 
@@ -26,7 +27,7 @@ namespace portfolius
 		public:
 			static ApplicationSettings *instance()
 			{
-				if (!_instance)
+				if (nullptr == _instance)
 					_instance = new ApplicationSettings;
 
 				return _instance;
@@ -39,9 +40,13 @@ namespace portfolius
 		private:
 			static ApplicationSettings *_instance;
 
+			void _init();
 			void _read_config_file();
 
 			char **currencies = 0;
+
+			std::mutex mutex;
+			bool initialised = false;
 	};
 }
 #endif
