@@ -1,17 +1,9 @@
 #include "applicationsettings.h"
 
-portfolius::ApplicationSettings *portfolius::ApplicationSettings::_instance = 0;
+portfolius::ApplicationSettings *portfolius::ApplicationSettings::_instance = nullptr;
 
 portfolius::ApplicationSettings::ApplicationSettings()
 {
-	try
-	{
-		this->_read_config_file();
-	}
-	catch (std::runtime_error e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
 }
 
 portfolius::ApplicationSettings::~ApplicationSettings()
@@ -29,7 +21,8 @@ void portfolius::ApplicationSettings::_read_config_file()
 {
 	int fd = -1;
 
-	fd = ::open(PATH_CONFIG_FILE, O_RDONLY);
+	fd = open(PATH_CONFIG_FILE, O_RDONLY);
+	std::cerr << "fd: " << fd << std::endl;
 	if (0 > fd)
 		throw std::runtime_error("Failed to open config file");
 
@@ -52,11 +45,16 @@ void portfolius::ApplicationSettings::_read_config_file()
 		to_read -= bytes_read;
 	}
 
+	*p = 0;
+	std::cerr << buffer << std::endl;
+
 	rapidjson::Document d;
+	std::cerr << "parsing json in buffer" << std::endl;
 	d.Parse(buffer);
 	rapidjson::Value& v = d["currencies"];
 
 	assert(v.IsArray());
+	std::cerr << "currencies maps to array" << std::endl;
 
 	this->currencies = (char **)calloc(v.Size()+1, sizeof(char *));
 	assert(this->currencies);
@@ -66,7 +64,13 @@ void portfolius::ApplicationSettings::_read_config_file()
 
 	for (rapidjson::SizeType i = 0, n = v.Size(); i < n; ++i)
 	{
-		std::string currency = v[i].GetString();
+		std::cerr << "IsObject(): " << v[i].IsObject() << std::endl;
+		rapidjson::Value& v_currency = v[i]["name"];
+		std::cerr << "IsObject(): " << v_currency.IsObject() << std::endl;
+		std::cerr << "IsString(): " << v_currency.IsString() << std::endl;
+		std::string currency = v_currency.GetString();
+
+		std::cerr << "Got currency \"" << currency << "\"" << std::endl;
 		this->currencies[i] = (char *)calloc(currency.length()+1, 1);
 		std::memcpy(this->currencies[i], currency.c_str(), currency.length());
 
@@ -77,9 +81,33 @@ void portfolius::ApplicationSettings::_read_config_file()
 		manager->_map_primary[key] = vec1;
 		manager->_map_secondary[key] = vec2;
 	}
+
+	std::cerr << "finished reading config file" << std::endl;
+}
+
+void portfolius::ApplicationSettings::_init()
+{
+	this->mutex.lock();
+	if (!this->initialised)
+	{
+		try
+		{
+			this->_read_config_file();
+		}
+		catch (std::runtime_error e)
+		{
+			this->mutex.unlock();
+			return;
+		}
+
+		this->initialised = true;
+	}
+	this->mutex.unlock();
 }
 
 char **portfolius::ApplicationSettings::get_currencies()
 {
+	this->_init();
+
 	return this->currencies;
 }
