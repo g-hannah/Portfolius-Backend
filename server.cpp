@@ -1,6 +1,6 @@
 #include "server.h"
 
-portfolius::Server *portfolius::Server::_instance = 0;
+portfolius::Server *portfolius::Server::_instance = nullptr;
 
 portfolius::Server::Server()
 {
